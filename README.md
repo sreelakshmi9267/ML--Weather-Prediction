@@ -20,81 +20,104 @@ To write a program to predict daily temperature , PM2.5 pollution level and Ener
 ```
 
 Program to implement the Random Forest Algorithm to predict daily temperature , PM2.5 pollution level and Energy based on environmental sensor data.
-Developed by: R . Nithish Aaditiyaa
-RegisterNumber:  25011876
+Developed by: SREE LAKSHMI B
+RegisterNumber:  212225040421
 
 ```
-
 ```
-
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
-import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 
-# Load dataset
-df = pd.read_csv("weather-station-eee-block_2024_07_13.csv")
-df.columns = df.columns.str.strip()
-df['time'] = pd.to_datetime(df['time'], errors='coerce')
+data = pd.read_csv("weather.csv")
 
-print("Original rows:", len(df))
 
-# Only drop if target missing
-df = df.dropna(subset=['tem', 'pm2_5'])
+X = data[['hum', 'pressure', 'wind_speed', 'illumination', 'co2']]
 
-# Fill feature columns instead of dropping
-df['hum'] = df['hum'].fillna(df['hum'].mean())
-df['pressure'] = df['pressure'].fillna(df['pressure'].mean())
-df['wind_speed'] = df['wind_speed'].fillna(df['wind_speed'].mean())
-df['co2'] = df['co2'].fillna(df['co2'].mean())
+X = X.fillna(X.mean())
 
-# Sort by time
-df = df.sort_values('time')
+# =========================
+# 1. Pollution Prediction (PM2.5)
+# =========================
+y_pollution = data['pm2_5'].fillna(data['pm2_5'].mean())
 
-# Create lag features
-df['Temp_Lag1'] = df['tem'].shift(1)
-df['PM_Lag1'] = df['pm2_5'].shift(1)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y_pollution, test_size=0.2, random_state=42
+)
 
-# Only remove first row created by shift
-df = df.iloc[1:]
+pollution_model = DecisionTreeRegressor(random_state=42, max_depth=5)
+pollution_model.fit(X_train, y_train)
 
-print("Rows after preprocessing:", len(df))
+pollution_pred = pollution_model.predict(X_test)
 
-# Features
-X = df[['hum', 'pressure', 'wind_speed', 'co2',
-        'Temp_Lag1', 'PM_Lag1']]
+rmse_pollution = np.sqrt(mean_squared_error(y_test, pollution_pred))
+r2_pollution = r2_score(y_test, pollution_pred)
+accuracy_pollution = r2_pollution * 100
 
-y_temp = df['tem']
-y_pm = df['pm2_5']
+print("🏭 Pollution Prediction (PM2.5)")
+print("Accuracy (%):", accuracy_pollution)
 
-print("Training samples:", len(X))
+print("R2 Score:", r2_pollution)
 
-# Train models
-model_temp = RandomForestRegressor(n_estimators=300, random_state=42)
-model_pm = RandomForestRegressor(n_estimators=300, random_state=42)
 
-model_temp.fit(X, y_temp)
-model_pm.fit(X, y_pm)
+print("RMSE:", rmse_pollution)
+print("R2 Score:", r2_pollution)
 
-# Save models
-joblib.dump(model_temp, "temperature_model.pkl")
-joblib.dump(model_pm, "pm25_model.pkl")
 
-print("Models trained and saved successfully!")
+# =========================
+# 2. Temperature Prediction
+# =========================
+y_temp = data['tem'].fillna(data['tem'].mean())
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y_temp, test_size=0.2, random_state=42
+)
+
+temp_model = DecisionTreeRegressor(random_state=42, max_depth=5)
+temp_model.fit(X_train, y_train)
+
+temp_pred = temp_model.predict(X_test)
+
+rmse_temp = np.sqrt(mean_squared_error(y_test, temp_pred))
+r2_temp = r2_score(y_test, temp_pred)
+accuracy_temp = r2_temp * 100
+print("\n🌡️ Temperature Prediction")
+print("Accuracy (%):", accuracy_temp)
+print("RMSE:", rmse_temp)
+print("R2 Score:", r2_temp)
+
+
+# =========================
+# 3. Energy Prediction (TSR)
+# =========================
+y_energy = data['tsr'].fillna(data['tsr'].mean())
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y_energy, test_size=0.2, random_state=42
+)
+
+energy_model = DecisionTreeRegressor(random_state=42, max_depth=5)
+energy_model.fit(X_train, y_train)
+
+energy_pred = energy_model.predict(X_test)
+
+rmse_energy = np.sqrt(mean_squared_error(y_test, energy_pred))
+r2_energy = r2_score(y_test, energy_pred)
+accuracy_energy = r2_energy * 100
+print("\n⚡ Energy Prediction (TSR)")
+print("Accuracy (%):", accuracy_energy)
+
+
+print("RMSE:", rmse_energy)
+print("R2 Score:", r2_energy)
 
 ```
 
 ## Output:
+<img width="378" height="267" alt="Screenshot 2026-05-19 143218" src="https://github.com/user-attachments/assets/de04546b-19bc-4056-9910-87ed96ff3119" />
 
-<img width="1248" height="114" alt="image" src="https://github.com/user-attachments/assets/51249e05-937e-464b-bf10-5159308b65a5" />
-
-<img width="1263" height="463" alt="image" src="https://github.com/user-attachments/assets/e25cc9b6-aa96-4a70-b77c-aa1d44041d72" />
-
-<img width="1268" height="460" alt="image" src="https://github.com/user-attachments/assets/54b97dae-8691-4c37-a28d-5fa4c8b87096" />
-
-<img width="1271" height="465" alt="image" src="https://github.com/user-attachments/assets/16f0abfb-3d60-4857-b285-a973cc664f12" />
-
-<img width="1246" height="96" alt="image" src="https://github.com/user-attachments/assets/477ca07a-1a8c-4284-989f-885e15cf4590" />
 
 ## Result:
 
